@@ -5,3 +5,21 @@ html, body, #root {
 body {
   margin: 0;
 }
+
+@import '../node_modules/antd/dist/antd.css';
+
+.ant-statistic {
+  margin: 20px;
+}
+
+.ant-table table {
+  text-align: center;
+}
+
+.ant-table-thead > tr:first-child > th:first-child {
+  text-align: center;
+}
+
+.ant-table-thead > tr:last-child > th:last-child {
+  text-align: center;
+}

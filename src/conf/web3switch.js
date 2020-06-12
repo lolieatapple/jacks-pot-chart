@@ -2,14 +2,14 @@ import Web3 from 'web3';
 import { networkId } from './config';
 
 let nodeUrlsTestnet = [
-    'wss://apitest.wanchain.org:8443/ws/v3/627f78bd371c3980a8782a505ffb7ec263ae0031213bb0cd2d10ed32e25b4f29',
+    'wss://apitest.wanchain.org:8443/ws/v3/9ea9ad8bb7ab6affd65bee6bb1e6731cbbb2eee4bbd1928b7237bc91e72ac13f',
     'https://gwan-ssl.wandevs.org:46891',
     'https://demodex.wandevs.org:48545',
 ];
 
 let nodeUrlsMainnet = [
-    'wss://api.wanchain.org:8443/ws/v3/627f78bd371c3980a8782a505ffb7ec263ae0031213bb0cd2d10ed32e25b4f29',
-    'wss://api2.wanchain.org:8443/ws/v3/627f78bd371c3980a8782a505ffb7ec263ae0031213bb0cd2d10ed32e25b4f29',
+    'wss://api.wanchain.org:8443/ws/v3/9ea9ad8bb7ab6affd65bee6bb1e6731cbbb2eee4bbd1928b7237bc91e72ac13f',
+    'wss://api2.wanchain.org:8443/ws/v3/9ea9ad8bb7ab6affd65bee6bb1e6731cbbb2eee4bbd1928b7237bc91e72ac13f',
 ]
 
 let nodeUrls = networkId === 1 ? nodeUrlsMainnet : nodeUrlsTestnet;

@@ -7,3 +7,5 @@ export const networkId = 1; //1:mainnet, 3:testnet;
 export const price = 10;
 
 export const defaultStartBlock = 0;
+
+export const scAddress = networkId === 1 ? mainnetSCAddr : testnetSCAddr;

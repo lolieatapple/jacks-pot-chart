@@ -60,6 +60,7 @@ class Index extends Component {
     this.state = {
       balance: 0,
       blockNumber: 0,
+      closed: false,
       totalPool: 0,
       delegatePool: 0,
       demandDepositPool: 0,
@@ -90,8 +91,10 @@ class Index extends Component {
     funcs.push(sc.getPastEvents('Redeem', { fromBlock: 8865321 }));
     funcs.push(sc.getPastEvents('LotteryResult', { fromBlock: 8865321 }));
     funcs.push(sc.methods.subsidyInfo().call());
+    funcs.push(sc.methods.closed().call());
 
-    const [balance, blockNumber, poolInfo, buyEvents, redeemEvents, settleEvents, subsidyInfo] = await Promise.all(funcs);
+
+    const [balance, blockNumber, poolInfo, buyEvents, redeemEvents, settleEvents, subsidyInfo, closed] = await Promise.all(funcs);
 
     funcs = [];
 
@@ -122,6 +125,7 @@ class Index extends Component {
     this.setState({
       balance: Number(web3.utils.fromWei(balance)).toFixed(1),
       blockNumber,
+      closed,
       totalPool: (Number(web3.utils.fromWei(poolInfo.delegatePool)) + Number(web3.utils.fromWei(poolInfo.demandDepositPool)) + Number(web3.utils.fromWei(poolInfo.prizePool))).toFixed(1),
       delegatePool: Number(web3.utils.fromWei(poolInfo.delegatePool)).toFixed(1),
       demandDepositPool: Number(web3.utils.fromWei(poolInfo.demandDepositPool)).toFixed(1),
@@ -131,7 +135,7 @@ class Index extends Component {
       lotterySettlementCounts: settleEvents.length,
       winCounts,
       subsidyAmount: Number(web3.utils.fromWei(subsidyInfo.total)),
-      tableData
+      tableData,
     })
   }
 
@@ -142,12 +146,14 @@ class Index extends Component {
           <div className={styles.inline} style={{ margin: "20px" }}>
             <Row>
               <Col>
-              <Statistic title="Smart Contract Balance" value={this.state.balance} />
-              </Col>
-              <Col>
                 <Statistic title="Block Number" value={this.state.blockNumber} />
               </Col>
-              <Col></Col>
+              <Col>
+                <Statistic title="Smart Contract Balance" value={this.state.balance} />
+              </Col>
+              <Col>
+                <Statistic title="Is Closed" value={this.state.closed} />
+              </Col>
             </Row>
             <Row>
               <Col>

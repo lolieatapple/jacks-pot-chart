@@ -98,7 +98,7 @@ class Index extends Component {
     console.log(blockNumber, poolInfo, buyEvents, redeemEvents, settleEvents, subsidyInfo);
     let winCounts = 0;
     for (let i = 0; i < settleEvents.length; i++) {
-      if (settleEvents[i].amounts.length > 0 && Number(settleEvents[i].amounts[0]) > 0) {
+      if (settleEvents[i].returnValues.amounts && settleEvents[i].returnValues.amounts.length > 0 && Number(settleEvents[i].returnValues.amounts[0]) > 0) {
         winCounts++;
       }
     }
@@ -122,10 +122,10 @@ class Index extends Component {
     this.setState({
       balance: Number(web3.utils.fromWei(balance)).toFixed(1),
       blockNumber,
-      totalPool: Number(web3.utils.fromWei(poolInfo.delegatePool)) + Number(web3.utils.fromWei(poolInfo.demandDepositPool)) + Number(web3.utils.fromWei(poolInfo.prizePool)),
-      delegatePool: Number(web3.utils.fromWei(poolInfo.delegatePool)),
-      demandDepositPool: Number(web3.utils.fromWei(poolInfo.demandDepositPool)),
-      pricePool: Number(web3.utils.fromWei(poolInfo.prizePool)),
+      totalPool: (Number(web3.utils.fromWei(poolInfo.delegatePool)) + Number(web3.utils.fromWei(poolInfo.demandDepositPool)) + Number(web3.utils.fromWei(poolInfo.prizePool))).toFixed(1),
+      delegatePool: Number(web3.utils.fromWei(poolInfo.delegatePool)).toFixed(1),
+      demandDepositPool: Number(web3.utils.fromWei(poolInfo.demandDepositPool)).toFixed(1),
+      pricePool: Number(web3.utils.fromWei(poolInfo.prizePool)).toFixed(1),
       stakeCounts: buyEvents.length,
       redeemCounts: redeemEvents.length,
       lotterySettlementCounts: settleEvents.length,

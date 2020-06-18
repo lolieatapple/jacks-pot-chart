@@ -23,3 +23,7 @@ body {
 .ant-table-thead > tr:last-child > th:last-child {
   text-align: center;
 }
+
+.ant-table-thead > tr > th, .ant-table-tbody > tr > td {
+  text-align: center;
+}

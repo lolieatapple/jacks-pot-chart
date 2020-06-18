@@ -14,21 +14,29 @@ class Index extends Component {
       dataIndex: 'name',
       key: 'name',
     },
-    // {
-    //   title: 'Capacity',
-    //   dataIndex: 'capacity',
-    //   key: 'capacity',
-    // },
-    // {
-    //   title: 'FeeRate',
-    //   dataIndex: 'feeRate',
-    //   key: 'feeRate',
-    // },
     {
       title: 'Delegated Amount',
       dataIndex: 'delegatedAmount',
       key: 'delegatedAmount',
     },
+  ]
+
+  columPlayer = [
+    {
+      title: 'Address',
+      dataIndex: 'address',
+      key: 'address',
+    },
+    {
+      title: 'Tickets Count',
+      dataIndex: 'ticketsCount',
+      key: 'ticketsCount',
+    },
+    {
+      title: "Total Stake Amount",
+      dataIndex: "totalStakeAmount",
+      key: "totalStakeAmount",
+    }
   ]
 
   validators = [
@@ -71,6 +79,7 @@ class Index extends Component {
       winCounts: 0,
       subsidyAmount: 0,
       tableData: [],
+      playerData: [],
     }
   }
 
@@ -96,15 +105,44 @@ class Index extends Component {
 
     const [balance, blockNumber, poolInfo, buyEvents, redeemEvents, settleEvents, subsidyInfo, closed] = await Promise.all(funcs);
 
-    funcs = [];
 
-    console.log(blockNumber, poolInfo, buyEvents, redeemEvents, settleEvents, subsidyInfo);
     let winCounts = 0;
     for (let i = 0; i < settleEvents.length; i++) {
       if (settleEvents[i].returnValues.amounts && settleEvents[i].returnValues.amounts.length > 0 && Number(settleEvents[i].returnValues.amounts[0]) > 0) {
         winCounts++;
       }
     }
+
+    let playerData = [];
+    funcs = [];
+    for (let i=0; i<buyEvents.length; i++) {
+      funcs.push(sc.methods.getUserCodeList(buyEvents[i].returnValues.user).call());
+    }
+
+    let users = await Promise.all(funcs);
+
+    let addresses = [];
+
+    for (let i=0; i<buyEvents.length; i++) {
+      let totalStakeAmount = 0;
+      for (let m=0; m<users[i].amounts.length; m++) {
+        totalStakeAmount += Number(web3.utils.fromWei(users[i].amounts[m]));
+      }
+
+      let one = {
+        address: buyEvents[i].returnValues.user.toLowerCase(),
+        ticketsCount: users[i].codes.length,
+        totalStakeAmount,
+        key: i
+      };
+
+      if (Number(one.ticketsCount) > 0 && Number(one.totalStakeAmount) > 0 && !addresses.includes(one.address)) {
+        playerData.push(one);
+        addresses.push(one.address);
+      }
+    }
+
+    funcs = [];
 
     let tableData = [];
     for (let i = 0; i < this.validators.length; i++) {
@@ -136,65 +174,71 @@ class Index extends Component {
       winCounts,
       subsidyAmount: Number(web3.utils.fromWei(subsidyInfo.total)),
       tableData,
+      playerData,
     })
   }
 
   render() {
     return (
-      <div className={styles.app + ' ' + styles.inline}>
-        <div>
-          <div className={styles.inline} style={{ margin: "20px" }}>
-            <Row>
-              <Col>
-                <Statistic title="Block Number" value={this.state.blockNumber} />
-              </Col>
-              <Col>
-                <Statistic title="Smart Contract Balance" value={this.state.balance} />
-              </Col>
-              <Col>
-                <Statistic title="Is Closed" value={this.state.closed} />
-              </Col>
-            </Row>
-            <Row>
-              <Col>
-                <Statistic title="Total Pool Amount" value={this.state.totalPool} />
-              </Col>
-              <Col>
-                <Statistic title="Delegate Pool Amount" value={this.state.delegatePool} />
-              </Col>
-              <Col>
-                <Statistic title="Demand Deposit Pool" value={this.state.demandDepositPool} />
-              </Col>
-            </Row>
-            <Row>
-              <Col>
-                <Statistic title="Price Pool Amount" value={this.state.pricePool} />
-              </Col>
-              <Col>
-                <Statistic title="Subsidy Amount" value={this.state.subsidyAmount} />
-              </Col>
-              <Col>
-                <Statistic title="Stake Counts" value={this.state.stakeCounts} />
-              </Col>
-            </Row>
-            <Row>
-              <Col>
-                <Statistic title="Redeem Counts" value={this.state.redeemCounts} />
-              </Col>
-              <Col>
-                <Statistic title="Lottery Settlement Counts" value={this.state.lotterySettlementCounts} />
-              </Col>
-              <Col>
-                <Statistic title="Win Counts" value={this.state.winCounts} />
-              </Col>
-            </Row>
+      <div>
+        <div className={styles.app + ' ' + styles.inline}>
+          <div>
+            <div className={styles.inline} style={{ margin: "20px" }}>
+              <Row>
+                <Col>
+                  <Statistic title="Block Number" value={this.state.blockNumber} />
+                </Col>
+                <Col>
+                  <Statistic title="Smart Contract Balance" value={this.state.balance} />
+                </Col>
+                <Col>
+                  <Statistic title="Is Closed" value={this.state.closed} />
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <Statistic title="Total Pool Amount" value={this.state.totalPool} />
+                </Col>
+                <Col>
+                  <Statistic title="Delegate Pool Amount" value={this.state.delegatePool} />
+                </Col>
+                <Col>
+                  <Statistic title="Demand Deposit Pool" value={this.state.demandDepositPool} />
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <Statistic title="Price Pool Amount" value={this.state.pricePool} />
+                </Col>
+                <Col>
+                  <Statistic title="Subsidy Amount" value={this.state.subsidyAmount} />
+                </Col>
+                <Col>
+                  <Statistic title="Stake Counts" value={this.state.stakeCounts} />
+                </Col>
+              </Row>
+              <Row>
+                <Col>
+                  <Statistic title="Redeem Counts" value={this.state.redeemCounts} />
+                </Col>
+                <Col>
+                  <Statistic title="Lottery Settlement Counts" value={this.state.lotterySettlementCounts} />
+                </Col>
+                <Col>
+                  <Statistic title="Win Counts" value={this.state.winCounts} />
+                </Col>
+              </Row>
 
+            </div>
+          </div>
+          <div style={{ margin: "20px" }}>
+            <h2>Delegate Information</h2>
+            <Table columns={this.colum} dataSource={this.state.tableData} style={{ width: "300px", margin: "auto" }} />
           </div>
         </div>
-
         <div style={{ margin: "20px" }}>
-          <h2>Delegate Information</h2>
-          <Table columns={this.colum} dataSource={this.state.tableData} style={{ width: "300px", margin: "auto" }} />
+          <h2>Player Information (Total {this.state.playerData.length})</h2>
+          <Table columns={this.columPlayer} dataSource={this.state.playerData} style={{ margin: "auto" }} />
         </div>
       </div>
     )

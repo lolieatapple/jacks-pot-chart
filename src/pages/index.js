@@ -179,6 +179,8 @@ class Index extends Component {
   }
 
   render() {
+    let rank = this.state.playerData.slice();
+    rank = rank.sort((a, b)=>(b.totalStakeAmount-a.totalStakeAmount));
     return (
       <div>
         <div className={styles.app + ' ' + styles.inline}>
@@ -237,8 +239,8 @@ class Index extends Component {
           </div>
         </div>
         <div style={{ margin: "20px" }}>
-          <h2>Player Information (Total {this.state.playerData.length})</h2>
-          <Table columns={this.columPlayer} dataSource={this.state.playerData} style={{ margin: "auto" }} />
+          <h2>Players Rankings (Total {this.state.playerData.length})</h2>
+          <Table columns={this.columPlayer} dataSource={rank} style={{ margin: "auto" }} />
         </div>
       </div>
     )

@@ -44,6 +44,16 @@ class Index extends Component {
       title: 'Tickets',
       dataIndex: 'ticket',
       key: 'ticket',
+    },
+    {
+      title: 'Count',
+      dataIndex: 'count',
+      key: 'count',
+    },
+    {
+      title: 'Stake',
+      dataIndex: 'stake',
+      key: 'stake',
     }
   ]
 
@@ -132,6 +142,7 @@ class Index extends Component {
 
     let addresses = [];
     let tickets = [];
+    let tmpTickets = [];
     for (let i=0; i<buyEvents.length; i++) {
       let totalStakeAmount = 0;
       for (let m=0; m<users[i].amounts.length; m++) {
@@ -149,7 +160,18 @@ class Index extends Component {
         playerData.push(one);
         addresses.push(one.address);
         for (let m=0; m<users[i].codes.length; m++) {
-          tickets.push({ticket:Number(users[i].codes[m])});
+          if (!tmpTickets.includes(users[i].codes[m])) {
+            tmpTickets.push(users[i].codes[m]);
+            tickets.push({
+              ticket:Number(users[i].codes[m]),
+              count:1,
+              stake: Number(web3.utils.fromWei(users[i].amounts[m]))
+            });
+          } else {
+            let id = tmpTickets.indexOf(users[i].codes[m]);
+            tickets[id].count++;
+            tickets[id].stake += Number(web3.utils.fromWei(users[i].amounts[m]));
+          }
         }
       }
     }

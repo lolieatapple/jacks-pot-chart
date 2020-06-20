@@ -39,6 +39,14 @@ class Index extends Component {
     }
   ]
 
+  columCodes = [
+    {
+      title: 'Tickets',
+      dataIndex: 'ticket',
+      key: 'ticket',
+    }
+  ]
+
   validators = [
     {
       name: 'WANBr',
@@ -80,6 +88,7 @@ class Index extends Component {
       subsidyAmount: 0,
       tableData: [],
       playerData: [],
+      tickets:[],
     }
   }
 
@@ -122,7 +131,7 @@ class Index extends Component {
     let users = await Promise.all(funcs);
 
     let addresses = [];
-
+    let tickets = [];
     for (let i=0; i<buyEvents.length; i++) {
       let totalStakeAmount = 0;
       for (let m=0; m<users[i].amounts.length; m++) {
@@ -139,8 +148,14 @@ class Index extends Component {
       if (Number(one.ticketsCount) > 0 && Number(one.totalStakeAmount) > 0 && !addresses.includes(one.address)) {
         playerData.push(one);
         addresses.push(one.address);
+        for (let m=0; m<users[i].codes.length; m++) {
+          tickets.push({ticket:Number(users[i].codes[m])});
+        }
       }
     }
+
+    tickets = tickets.sort((a,b)=>(a.ticket-b.ticket));
+    console.log('tickets', tickets);
 
     funcs = [];
 
@@ -175,6 +190,7 @@ class Index extends Component {
       subsidyAmount: Number(web3.utils.fromWei(subsidyInfo.total)),
       tableData,
       playerData,
+      tickets,
     })
   }
 
@@ -241,6 +257,10 @@ class Index extends Component {
         <div style={{ margin: "20px" }}>
           <h2>Players Rankings (Total {this.state.playerData.length})</h2>
           <Table columns={this.columPlayer} dataSource={rank} style={{ margin: "auto" }} />
+        </div>
+        <div style={{ margin: "20px" }}>
+          <h2>Tickets Pool (Total {this.state.tickets.length})</h2>
+          <Table columns={this.columCodes} dataSource={this.state.tickets} style={{ margin: "auto" }} />
         </div>
       </div>
     )

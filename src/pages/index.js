@@ -98,127 +98,137 @@ class Index extends Component {
       subsidyAmount: 0,
       tableData: [],
       playerData: [],
-      tickets:[],
+      tickets: [],
     }
   }
 
   async componentWillMount(props) {
-    while (true) {
-      if (isSwitchFinish()) {
-        break;
-      }
-      await sleep(100);
-    }
-    let web3 = getWeb3();
-    let sc = new web3.eth.Contract(abi, scAddress);
-    let funcs = [];
-    funcs.push(web3.eth.getBalance(scAddress));
-    funcs.push(web3.eth.getBlockNumber());
-    funcs.push(sc.methods.poolInfo().call());
-    funcs.push(sc.getPastEvents('Buy', { fromBlock: 8865321 }));
-    funcs.push(sc.getPastEvents('Redeem', { fromBlock: 8865321 }));
-    funcs.push(sc.getPastEvents('LotteryResult', { fromBlock: 8865321 }));
-    funcs.push(sc.methods.subsidyInfo().call());
-    funcs.push(sc.methods.closed().call());
+    await this.updateData();
+  }
 
-
-    const [balance, blockNumber, poolInfo, buyEvents, redeemEvents, settleEvents, subsidyInfo, closed] = await Promise.all(funcs);
-
-
-    let winCounts = 0;
-    for (let i = 0; i < settleEvents.length; i++) {
-      if (settleEvents[i].returnValues.amounts && settleEvents[i].returnValues.amounts.length > 0 && Number(settleEvents[i].returnValues.amounts[0]) > 0) {
-        winCounts++;
-      }
-    }
-
-    let playerData = [];
-    funcs = [];
-    for (let i=0; i<buyEvents.length; i++) {
-      funcs.push(sc.methods.getUserCodeList(buyEvents[i].returnValues.user).call());
-    }
-
-    let users = await Promise.all(funcs);
-
-    let addresses = [];
-    let tickets = [];
-    let tmpTickets = [];
-    for (let i=0; i<buyEvents.length; i++) {
-      let totalStakeAmount = 0;
-      for (let m=0; m<users[i].amounts.length; m++) {
-        totalStakeAmount += Number(web3.utils.fromWei(users[i].amounts[m]));
+  updateData = async () => {
+    try {
+      while (true) {
+        if (isSwitchFinish()) {
+          break;
+        }
+        await sleep(100);
       }
 
-      let one = {
-        address: buyEvents[i].returnValues.user.toLowerCase(),
-        ticketsCount: users[i].codes.length,
-        totalStakeAmount,
-        key: i
-      };
+      let web3 = getWeb3();
+      let sc = new web3.eth.Contract(abi, scAddress);
+      let funcs = [];
+      funcs.push(web3.eth.getBalance(scAddress));
+      funcs.push(web3.eth.getBlockNumber());
+      funcs.push(sc.methods.poolInfo().call());
+      funcs.push(sc.getPastEvents('Buy', { fromBlock: 8865321 }));
+      funcs.push(sc.getPastEvents('Redeem', { fromBlock: 8865321 }));
+      funcs.push(sc.getPastEvents('LotteryResult', { fromBlock: 8865321 }));
+      funcs.push(sc.methods.subsidyInfo().call());
+      funcs.push(sc.methods.closed().call());
 
-      if (Number(one.ticketsCount) > 0 && Number(one.totalStakeAmount) > 0 && !addresses.includes(one.address)) {
-        playerData.push(one);
-        addresses.push(one.address);
-        for (let m=0; m<users[i].codes.length; m++) {
-          if (!tmpTickets.includes(users[i].codes[m])) {
-            tmpTickets.push(users[i].codes[m]);
-            tickets.push({
-              ticket:Number(users[i].codes[m]),
-              count:1,
-              stake: Number(web3.utils.fromWei(users[i].amounts[m]))
-            });
-          } else {
-            let id = tmpTickets.indexOf(users[i].codes[m]);
-            tickets[id].count++;
-            tickets[id].stake += Number(web3.utils.fromWei(users[i].amounts[m]));
+
+      const [balance, blockNumber, poolInfo, buyEvents, redeemEvents, settleEvents, subsidyInfo, closed] = await Promise.all(funcs);
+
+
+      let winCounts = 0;
+      for (let i = 0; i < settleEvents.length; i++) {
+        if (settleEvents[i].returnValues.amounts && settleEvents[i].returnValues.amounts.length > 0 && Number(settleEvents[i].returnValues.amounts[0]) > 0) {
+          winCounts++;
+        }
+      }
+
+      let playerData = [];
+      funcs = [];
+      for (let i = 0; i < buyEvents.length; i++) {
+        funcs.push(sc.methods.getUserCodeList(buyEvents[i].returnValues.user).call());
+      }
+
+      let users = await Promise.all(funcs);
+
+      let addresses = [];
+      let tickets = [];
+      let tmpTickets = [];
+      for (let i = 0; i < buyEvents.length; i++) {
+        let totalStakeAmount = 0;
+        for (let m = 0; m < users[i].amounts.length; m++) {
+          totalStakeAmount += Number(web3.utils.fromWei(users[i].amounts[m]));
+        }
+
+        let one = {
+          address: buyEvents[i].returnValues.user.toLowerCase(),
+          ticketsCount: users[i].codes.length,
+          totalStakeAmount,
+          key: i
+        };
+
+        if (Number(one.ticketsCount) > 0 && Number(one.totalStakeAmount) > 0 && !addresses.includes(one.address)) {
+          playerData.push(one);
+          addresses.push(one.address);
+          for (let m = 0; m < users[i].codes.length; m++) {
+            if (!tmpTickets.includes(users[i].codes[m])) {
+              tmpTickets.push(users[i].codes[m]);
+              tickets.push({
+                ticket: Number(users[i].codes[m]),
+                count: 1,
+                stake: Number(web3.utils.fromWei(users[i].amounts[m]))
+              });
+            } else {
+              let id = tmpTickets.indexOf(users[i].codes[m]);
+              tickets[id].count++;
+              tickets[id].stake += Number(web3.utils.fromWei(users[i].amounts[m]));
+            }
           }
         }
       }
-    }
 
-    tickets = tickets.sort((a,b)=>(a.ticket-b.ticket));
-    console.log('tickets', tickets);
+      tickets = tickets.sort((a, b) => (a.ticket - b.ticket));
+      console.log('tickets', tickets);
 
-    funcs = [];
+      funcs = [];
 
-    let tableData = [];
-    for (let i = 0; i < this.validators.length; i++) {
-      funcs.push(sc.methods.validatorsAmountMap(this.validators[i].address).call());
-    }
+      let tableData = [];
+      for (let i = 0; i < this.validators.length; i++) {
+        funcs.push(sc.methods.validatorsAmountMap(this.validators[i].address).call());
+      }
 
-    let rets = await Promise.all(funcs);
-    for (let i = 0; i < this.validators.length; i++) {
-      tableData.push({
-        key: i,
-        name: this.validators[i].name,
-        capacity: '--',
-        feeRate: '--',
-        delegatedAmount: web3.utils.fromWei(rets[i])
+      let rets = await Promise.all(funcs);
+      for (let i = 0; i < this.validators.length; i++) {
+        tableData.push({
+          key: i,
+          name: this.validators[i].name,
+          capacity: '--',
+          feeRate: '--',
+          delegatedAmount: web3.utils.fromWei(rets[i])
+        });
+      }
+
+      this.setState({
+        balance: Number(web3.utils.fromWei(balance)).toFixed(1),
+        blockNumber,
+        closed,
+        totalPool: (Number(web3.utils.fromWei(poolInfo.delegatePool)) + Number(web3.utils.fromWei(poolInfo.demandDepositPool)) + Number(web3.utils.fromWei(poolInfo.prizePool))).toFixed(1),
+        delegatePool: Number(web3.utils.fromWei(poolInfo.delegatePool)).toFixed(1),
+        demandDepositPool: Number(web3.utils.fromWei(poolInfo.demandDepositPool)).toFixed(1),
+        pricePool: Number(web3.utils.fromWei(poolInfo.prizePool)).toFixed(1),
+        stakeCounts: buyEvents.length,
+        redeemCounts: redeemEvents.length,
+        lotterySettlementCounts: settleEvents.length,
+        winCounts,
+        subsidyAmount: Number(web3.utils.fromWei(subsidyInfo.total)),
+        tableData,
+        playerData,
+        tickets,
       });
+    } catch (err) {
+      console.log('err:', err);
+      setTimeout(this.updateData, 100);
     }
-
-    this.setState({
-      balance: Number(web3.utils.fromWei(balance)).toFixed(1),
-      blockNumber,
-      closed,
-      totalPool: (Number(web3.utils.fromWei(poolInfo.delegatePool)) + Number(web3.utils.fromWei(poolInfo.demandDepositPool)) + Number(web3.utils.fromWei(poolInfo.prizePool))).toFixed(1),
-      delegatePool: Number(web3.utils.fromWei(poolInfo.delegatePool)).toFixed(1),
-      demandDepositPool: Number(web3.utils.fromWei(poolInfo.demandDepositPool)).toFixed(1),
-      pricePool: Number(web3.utils.fromWei(poolInfo.prizePool)).toFixed(1),
-      stakeCounts: buyEvents.length,
-      redeemCounts: redeemEvents.length,
-      lotterySettlementCounts: settleEvents.length,
-      winCounts,
-      subsidyAmount: Number(web3.utils.fromWei(subsidyInfo.total)),
-      tableData,
-      playerData,
-      tickets,
-    })
   }
 
   render() {
     let rank = this.state.playerData.slice();
-    rank = rank.sort((a, b)=>(b.totalStakeAmount-a.totalStakeAmount));
+    rank = rank.sort((a, b) => (b.totalStakeAmount - a.totalStakeAmount));
     return (
       <div>
         <div className={styles.app + ' ' + styles.inline}>

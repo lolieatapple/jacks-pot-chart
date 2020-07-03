@@ -22,7 +22,12 @@ console.log('ready to new web3...');
 for (let i=0; i<nodeUrls.length; i++) {
     try {
         if (nodeUrls[i].indexOf('ws') === 0) {
-            web3s.push(new Web3(new Web3.providers.WebsocketProvider(nodeUrls[i])));
+            web3s.push(new Web3(new Web3.providers.WebsocketProvider(nodeUrls[i], {
+              clientConfig: {
+                maxReceivedFrameSize: 100000000,
+                maxReceivedMessageSize: 100000000,
+              }
+            })));
         } else {
             web3s.push(new Web3(new Web3.providers.HttpProvider(nodeUrls[i])));
         }
